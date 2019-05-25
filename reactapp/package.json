@@ -101,7 +101,7 @@
       "!src/**/*.d.ts"
     ],
     "setupFiles": [
-      "react-app-polyfill/jsdom"
+      "<rootDir/config/polyfills.js"
     ],
     "setupFilesAfterEnv": [],
     "testMatch": [
