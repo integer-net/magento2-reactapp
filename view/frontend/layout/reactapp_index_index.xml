@@ -8,6 +8,12 @@
 <page xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" layout="1column" xsi:noNamespaceSchemaLocation="urn:magento:framework:View/Layout/etc/page_configuration.xsd">
     <head>
         <title>ReactApp</title>
+        <!--
+        /**
+         * disable this if you don't want to use the compiled css from the reactapp
+         */
+         -->
+        <css src="IntegerNet_ReactApp::css/main.css" />
     </head>
     <body>
         <referenceContainer name="content">
