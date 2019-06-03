@@ -1,7 +1,8 @@
 import React from 'react';
 import './App.css';
-import config from '../../config';
+import config, { orderHistoryQuery } from '../../config';
 import * as Customer from '../Customer';
+import GraphqlComponent from '../../util/GraphqlComponent';
 
 class App extends React.Component {
   loadSections = ['customer'];
@@ -10,10 +11,6 @@ class App extends React.Component {
     super(props);
 
     const { loadSections } = this;
-
-    this.localStorageData =
-      window.localStorage &&
-      JSON.parse(window.localStorage.getItem('mage-cache-storage'));
 
     this.state = {
       sectionData: {},
@@ -24,6 +21,54 @@ class App extends React.Component {
       },
       loading: loadSections
     };
+  }
+
+  componentDidMount() {
+    const { getCustomer } = this;
+
+    document.addEventListener(
+      'customer-data-reload',
+      function(e) {
+        getCustomer();
+      },
+      false
+    );
+
+    getCustomer();
+  }
+
+  componentWillUnmount() {
+    const { getCustomer } = this;
+    document.removeEventListener('customer-data-reload', getCustomer());
+  }
+
+  render() {
+    const {
+      state: { customer, loading }
+    } = this;
+
+    const CustomerOrderHistory = GraphqlComponent(
+      Customer.OrderHistory,
+      orderHistoryQuery
+    );
+
+    return (
+      /**
+       * React.Fragments allow you to return multiple elements without a (rendered) wrapper element
+       * https://reactjs.org/docs/fragments.html#short-syntax
+       */
+      <React.Fragment>
+        <Customer.Welcome
+          customer={customer}
+          isLoading={loading.includes('customer')}
+        />
+        <Customer.Authorisation
+          customer={customer}
+          isLoading={loading.includes('customer')}
+        />
+        {customer.isLoggedIn && <CustomerOrderHistory />}
+      </React.Fragment>
+    );
   }
 
   handleCustomerData = customerData => {
@@ -44,6 +89,10 @@ class App extends React.Component {
     const {
       state: { loading: loadSections }
     } = this;
+
+    if (!loadSections.length) {
+      return;
+    }
 
     await window
       .fetch(
@@ -93,12 +142,22 @@ class App extends React.Component {
 
   getCustomer = () => {
     const {
-      localStorageData,
       handleCustomerData,
       fetchSections,
       removeLoading,
       addLoading
     } = this;
+
+    let localStorageData = {};
+
+    try {
+      localStorageData =
+        window.localStorage &&
+        JSON.parse(window.localStorage.getItem('mage-cache-storage'));
+    } catch (e) {
+      console.warn('localStorage is unavailable');
+      console.error(e);
+    }
 
     if (localStorageData && localStorageData.hasOwnProperty('customer')) {
       handleCustomerData(localStorageData.customer);
@@ -133,31 +192,6 @@ class App extends React.Component {
       )
     }));
   };
-
-  componentDidMount() {
-    const { getCustomer } = this;
-
-    getCustomer();
-  }
-
-  render() {
-    const {
-      state: { customer, loading }
-    } = this;
-
-    return (
-      /**
-       * React.Fragments allow you to return multiple elements without a (rendered) wrapper element
-       * https://reactjs.org/docs/fragments.html#short-syntax
-       */
-      <React.Fragment>
-        <Customer.Welcome
-          customer={customer}
-          isLoading={loading.includes('customer')}
-        />
-      </React.Fragment>
-    );
-  }
 }
 
 export default App;

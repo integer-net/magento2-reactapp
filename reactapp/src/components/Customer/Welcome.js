@@ -9,7 +9,7 @@ const Welcome = props => {
   } = props;
 
   const welcomeMessage =
-    (isLoading && 'loading...') ||
+    (isLoading && 'Loading...') ||
     (!Object.keys(customer).length && 'Could not load data...') ||
     `Welcome ${isLoggedIn ? firstname : 'Unknown Traveler'}`;
 
