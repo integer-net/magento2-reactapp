@@ -3,9 +3,16 @@ import './App.css';
 import config, { orderHistoryQuery } from '../../config';
 import * as Customer from '../Customer';
 import GraphqlComponent from '../../util/GraphqlComponent';
+import { notifyOnSectionUpdate } from '../../util/magento/customerData';
+
+const CustomerOrderHistory = GraphqlComponent(
+  Customer.OrderHistory,
+  orderHistoryQuery
+);
 
 class App extends React.Component {
   loadSections = ['customer'];
+  notifyEvent = 'customer-data-reloaded';
 
   constructor(props) {
     super(props);
@@ -24,33 +31,32 @@ class App extends React.Component {
   }
 
   componentDidMount() {
-    const { getCustomer } = this;
+    const { getCustomerDataSections, notifyEvent, loadSections } = this;
 
+    // sets listeners to the customerData sections we pass as a parameter, and fires the `notifyEvent` event
+    notifyOnSectionUpdate(loadSections);
+
+    // listen to the `notifyEvent` and trigger the getCustomerDataSections() function
     document.addEventListener(
-      'customer-data-reload',
+      notifyEvent,
       function(e) {
-        getCustomer();
+        getCustomerDataSections();
       },
       false
     );
 
-    getCustomer();
+    getCustomerDataSections();
   }
 
   componentWillUnmount() {
-    const { getCustomer } = this;
-    document.removeEventListener('customer-data-reload', getCustomer());
+    const { getCustomerDataSections, notifyEvent } = this;
+    document.removeEventListener(notifyEvent, getCustomerDataSections());
   }
 
   render() {
     const {
       state: { customer, loading }
     } = this;
-
-    const CustomerOrderHistory = GraphqlComponent(
-      Customer.OrderHistory,
-      orderHistoryQuery
-    );
 
     return (
       /**
@@ -71,7 +77,7 @@ class App extends React.Component {
     );
   }
 
-  handleCustomerData = customerData => {
+  processCustomerData = customerData => {
     const customerIsLoggedIn =
       customerData.hasOwnProperty('firstname') &&
       customerData.firstname !== '' &&
@@ -85,7 +91,11 @@ class App extends React.Component {
     });
   };
 
-  fetchSections = async () => {
+  /**
+   * fetches customerSectionData from Magento
+   * @returns {Promise<void>}
+   */
+  fetchCustomerDataSections = async () => {
     const {
       state: { loading: loadSections }
     } = this;
@@ -140,12 +150,16 @@ class App extends React.Component {
       });
   };
 
-  getCustomer = () => {
+  /**
+   * Checks if customerData is available from LocalStorage or otherwise fetches it from server
+   * Then sends sends customerData to `processCustomerData`
+   */
+  getCustomerDataSections = () => {
     const {
-      handleCustomerData,
-      fetchSections,
-      removeLoading,
-      addLoading
+      processCustomerData,
+      fetchCustomerDataSections,
+      removeLoadingEntityFromState,
+      addLoadingEntityToState
     } = this;
 
     let localStorageData = {};
@@ -155,37 +169,40 @@ class App extends React.Component {
         window.localStorage &&
         JSON.parse(window.localStorage.getItem('mage-cache-storage'));
     } catch (e) {
-      console.warn('localStorage is unavailable');
-      console.error(e);
+      console.warn('LocalStorage is unavailable');
+      console.error('Reason:', e);
     }
 
     if (localStorageData && localStorageData.hasOwnProperty('customer')) {
-      handleCustomerData(localStorageData.customer);
-      removeLoading('customer');
+      processCustomerData(localStorageData.customer);
+      removeLoadingEntityFromState('customer');
     } else {
-      addLoading('customer');
+      addLoadingEntityToState('customer');
     }
 
-    fetchSections().then(() => {
-      const { sectionData, loading } = this.state;
+    const { loading } = this.state;
 
-      if (
-        loading.includes('customer') &&
-        sectionData.hasOwnProperty('customer')
-      ) {
-        handleCustomerData(sectionData.customer);
-        removeLoading('customer');
-      }
-    });
+    loading.length &&
+      fetchCustomerDataSections().then(() => {
+        const { sectionData, loading } = this.state;
+
+        if (
+          loading.includes('customer') &&
+          sectionData.hasOwnProperty('customer')
+        ) {
+          processCustomerData(sectionData.customer);
+          removeLoadingEntityFromState('customer');
+        }
+      });
   };
 
-  addLoading = loadingEntity => {
+  addLoadingEntityToState = loadingEntity => {
     this.setState(prevState => ({
       loading: [...prevState.loading, loadingEntity]
     }));
   };
 
-  removeLoading = finishedEntity => {
+  removeLoadingEntityFromState = finishedEntity => {
     this.setState(prevState => ({
       loading: prevState.loading.filter(
         loadingEntity => loadingEntity !== finishedEntity
