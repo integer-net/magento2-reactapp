@@ -12,8 +12,6 @@ use Magento\Framework\Controller\ResultFactory;
 class Index extends \Magento\Contact\Controller\Index implements HttpGetActionInterface
 {
     /**
-     * Show Contact Us page
-     *
      * @return \Magento\Framework\Controller\ResultInterface
      */
     public function execute()
