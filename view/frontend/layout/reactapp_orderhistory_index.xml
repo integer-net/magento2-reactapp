@@ -13,11 +13,11 @@
          * disable this if you don't want to use the compiled css from the reactapp
          */
          -->
-        <css src="IntegerNet_ReactApp::css/main.css" />
+        <css src="IntegerNet_ReactApp::css/order-history/main.css" />
     </head>
     <body>
         <referenceContainer name="content">
-            <block name="reactApp" template="IntegerNet_ReactApp::reactapp.phtml"/>
+            <block name="reactApp" template="IntegerNet_ReactApp::order-history.phtml"/>
         </referenceContainer>
     </body>
 </page>
