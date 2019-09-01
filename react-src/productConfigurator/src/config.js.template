@@ -13,7 +13,8 @@ const baseUrl = isDevelopment
   : window.BASE_URL || 'https://magento.test/';
 
 const config = {
-  baseUrl
+  baseUrl,
+  graphqlLink: baseUrl + 'graphql'
 };
 
 export default config;
