@@ -13,7 +13,24 @@ const baseUrl = isDevelopment
   : window.BASE_URL || 'https://magento.test/';
 
 const config = {
-  baseUrl
+  baseUrl,
+  forgotPasswordLink: baseUrl + 'customer/account/forgotpassword/',
+  loginLink: baseUrl + 'customer/ajax/login/',
+  logoutLink: baseUrl + 'customer/account/logout/',
+  orderViewLink: baseUrl + 'sales/order/view/order_id/',
+  graphqlLink: baseUrl + 'graphql'
 };
 
 export default config;
+
+export const orderHistoryQuery = `{
+ customerOrders{
+  items{
+    grand_total,
+    id,
+    increment_id,
+    status,
+    created_at
+  }
+ }
+}`;

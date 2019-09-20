@@ -6,7 +6,8 @@
 var config = {
     map: {
         '*': {
-            reactapp: 'IntegerNet_ReactApp/js/main'
+            orderHistoryApp: 'IntegerNet_ReactApp/js/order-history/main',
+            productConfiguratorApp: 'IntegerNet_ReactApp/js/product-configurator/main'
         }
     }
 };
